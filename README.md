@@ -1,0 +1,4 @@
+Fictitious
+==========
+
+fictitious play
