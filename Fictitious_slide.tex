@@ -1,0 +1,303 @@
+\documentclass[dvipdfmx,fleqn]{beamer}
+%\documentclass[dvipdfmx,fleqn,handout]{beamer}
+\usepackage{amsmath,amssymb,amsthm}
+
+\mode<presentation>
+{
+  \usetheme{default}
+}
+
+\title{\Large Fictitious play}
+\author{\large Yusuke Murakami}
+\date{\small 27 Jun. 2014}
+
+\usefonttheme{professionalfonts}
+
+\setbeamercovered{transparent=20}
+
+\setbeamertemplate{navigation symbols}{} 
+\setbeamertemplate{footline}[frame number] 
+
+
+
+\begin{document}
+
+\sffamily
+\gtfamily
+
+
+\begin{frame}
+  \titlepage
+  \thispagestyle{empty}
+\end{frame}
+
+\setcounter{framenumber}{0}
+
+\begin{frame}
+\frametitle{Fictitous Playとは}
+\begin{itemize}\setlength{\parskip}{0.5em}
+\item
+Ficititious playの前提
+
+	\begin{itemize}\setlength{\parskip}{0.5em}
+ 	\item
+	プレーヤーは$2$人.
+	
+	それぞれのプレーヤーをプレーヤー$0$、プレーヤー$1$とする.
+	
+	\item
+	各プレーヤーには行動が$m$種類ある.
+	
+	（プレーヤーごとに行動の種類数に差があっても良い）.
+	
+	それぞれの行動を行動$0$、行動$1$、$\cdots$、行動$m-1$とする.
+	
+	\item
+	各プレーヤーにとって、その行動をとった時の利得が予め定まっている.
+	それは利得行列の形で表される.
+	
+	\item
+	期間は$0$期から$T$期までの繰り返しゲーム.
+	
+	\item
+	各プレーヤーは、後に説明する「信念」を元に、
+	その期に利得が最大になるような行動を選択する.
+	利得が最大になる行動が複数ある場合はその中から
+	等確率でランダムに選択する.
+	
+	\item
+	将来利得を見据えた行動は取らない.
+	
+	\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Fictitous Playとは}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+記号
+
+	\begin{itemize}\setlength{\parskip}{0.5em}
+	\item $t$期にプレイヤー$i$が選択した行動は$a_i(t)$で表す.
+	
+	\item $t$期にプレイヤー$i$が持っている「信念」は$x_i(t)$で表す.
+	
+	\end{itemize}
+
+\item
+信念
+
+	\begin{itemize}\setlength{\parskip}{0.5em}
+	\item
+	$t$期のプレーヤー$0$が持つ信念は、それまでの期間に相手
+	（プレーヤー$1$）が取った行動の「平均」で表される.すなわち、
+	\begin{equation}
+	x_0(t) = \frac{a_1(0)+\cdots+a_1(t-1)}{t} \label{eq0}
+	\end{equation}
+	となる.
+	
+	\item
+	プレーヤー$1$も同様に定式化する.
+	
+	\item
+	初期の行動時には信念がないので、$x_0(0)$および$x_1(0)$はランダムに行動する.
+	\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{今回の設定と漸化式}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+今回はコードの都合で、いずれの行動をとっても利得が同じ場合は、
+ランダムではなく若い数の行動をとることにした.
+
+\item
+また、今回はシミュレーションを面白くするために、信念を以下のようにした.
+\begin{eqnarray} 
+x_0(t) &=& \frac{x_0(0)+a_1(0)+\cdots+a_1(t-1)}{t+1} \label{eq1-0} \\
+x_1(t) &=& \frac{x_1(0)+a_0(0)+\cdots+a_0(t-1)}{t+1} \label{eq1-1}
+\end{eqnarray}
+
+\item
+\eqref{eq1-0}と\eqref{eq1-1}から、以下のような連立１階漸化式を考えることができる.
+\begin{eqnarray} 
+x_0(t+1) &=& x_0(t)+\frac{1}{t+2}(a_1(t)-x_0(t)) \label{eq2-0}\\
+x_1(t+1) &=& x_1(t)+\frac{1}{t+2}(a_0(t)-x_1(t)) \label{eq2-1}
+\end{eqnarray}
+
+
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[containsverbatim]% verbatim 環境を使えるように
+\frametitle{コードの説明}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+初期読み込みと初期変数の設定
+
+\begin{verbatim}
+import matplotlib.pyplot as plt
+import numpy as np
+from random import uniform
+fig, ax = plt.subplots()
+
+T = 1000
+s = ((1,-1),(-1,1),
+     (-1,1),(1,-1))
+\end{verbatim}
+
+\verb|T|が期間、\verb|s|が利得行列（この場合はMatching Penniesゲーム）.
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]% verbatim 環境を使えるように
+\frametitle{コードの説明}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+諸関数の設定
+
+\begin{verbatim}
+def ss(a, s):
+    return ((s[0][a], s[1][a]),
+            (s[2][a], s[3][a]))
+
+def res(x, s):
+    vec = (1-x, x)
+    a = np.dot(s, vec) 
+    return a.argmax()
+
+\end{verbatim}
+
+\verb|ss|はあるプレイヤーの利得行列を取り出す関数、
+\verb|res|は最適反応を返す関数.
+\verb|argmax()|を使っているので利得が同じ場合は若い数の行動を選ぶ.
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[containsverbatim]% verbatim 環境を使えるように
+\frametitle{コードの説明}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+初期値の設定と漸化式の計算
+
+\begin{verbatim}
+x0 = [uniform(0, 1)]
+x1 = [uniform(0, 1)]
+
+s0 = np.array(ss(0, s))
+s1 = np.array(ss(1, s))
+
+for i in range(T-1):
+    x0.append(x0[i]+(res(x1[i], s1)-x0[i])/(i+2))
+    x1.append(x1[i]+(res(x0[i], s0)-x1[i])/(i+2))
+
+\end{verbatim}
+
+\verb|x0|と\verb|x1|に値を加えていく.
+\verb|s0|と\verb|s1|はそれぞれの利得を関数\verb|s|で取り出している.
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]% verbatim 環境を使えるように
+\frametitle{コードの説明}
+\begin{itemize}\setlength{\parskip}{0.5em}
+
+\item
+グラフ化して保存、表示
+
+\begin{verbatim}
+ax.plot(x0, 'r-')
+ax.plot(x1, 'b-')
+plt.savefig('matchingpennies_plot.pdf', 
+   bbox_inches='tight', pad_inches=0)
+plt.show()
+\end{verbatim}
+
+グラフを書いて保存し、最後に表示する.
+
+\end{itemize}
+\end{frame}
+
+
+
+
+%\begin{frame}
+%\frametitle{図}
+%\begin{figure}
+% \centering
+% \includegraphics{matchingpennies_plot.pdf}
+% \caption{図の表示}
+% \label{fig:matchingpennies_plot}
+%\end{figure}
+%\end{frame}
+
+
+
+\begin{frame}
+\frametitle{まとめ}
+\begin{itemize}\setlength{\parskip}{0.5em}
+\item
+まとめ
+
+\item
+よくわかっていない点とか
+
+\item
+今後の課題とか
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{今後検討したいこと}
+\begin{itemize}\setlength{\parskip}{0.5em}
+\item
+$T \to \infty$で行き着く先は必ず混合戦略も含めたNash均衡の１つになるのか？
+
+	\begin{itemize}\setlength{\parskip}{0.5em}
+	\item
+	そもそも行動列は必ず収束するのか？
+	
+	\item
+	\eqref{eq0}式と\eqref{eq1-0}式の間に差はないか？
+	
+	\end{itemize}
+
+\item
+$T \to \infty$で行き着く先が複数あるとき、その頻度に差はあるのか？
+
+\item
+頻度に差があったとすると、それにはどんな意味があるのか？
+
+\item
+プレーヤーを増やすとどうなるか？
+
+\item
+利得行列を確率変数にするとどうなるか？
+
+\item
+利得を考えるときに「信念」だけでなく「予想される将来利得（の割り引いたもの）」も
+含めるとどうなるか？
+
+\end{itemize}
+\end{frame}
+
+
+
+
+\end{document}
