@@ -9,7 +9,7 @@
 
 \title{\Large Fictitious play}
 \author{\large Yusuke Murakami}
-\date{\small 27 Jun. 2014}
+\date{\small 28 Jun. 2014}
 
 \usefonttheme{professionalfonts}
 
@@ -237,29 +237,34 @@ plt.show()
 
 
 
-%\begin{frame}
-%\frametitle{図}
-%\begin{figure}
-% \centering
-% \includegraphics{matchingpennies_plot.pdf}
-% \caption{図の表示}
-% \label{fig:matchingpennies_plot}
-%\end{figure}
-%\end{frame}
+\begin{frame}
+\frametitle{図}
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.5]{matchingpennies_plot.pdf}
+ \caption{matching penniesの場合の信念の推移}
+ \label{fig:matchingpennies_plot}
+\end{figure}
+\end{frame}
 
 
 
 \begin{frame}
-\frametitle{まとめ}
+\frametitle{matching penniesの考察}
 \begin{itemize}\setlength{\parskip}{0.5em}
 \item
-まとめ
+最初は大きく信念が揺らぐが、
+時間を経るにつれて徐々に収束して行く様子が分かる.
 
 \item
-よくわかっていない点とか
+相手の行動を追いかけるような挙動を見せている.
 
 \item
-今後の課題とか
+収束先はどちらも$0.5$のように見える
+\footnote{より詳しく見るには、このゲームを何度も繰り返し、
+$T=1000$での頻度をヒストグラム化すると良い}.
+これは行動$0$と行動$1$の混合戦略となり、Nash均衡に一致する.
+
 \end{itemize}
 \end{frame}
 
